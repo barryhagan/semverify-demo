@@ -19,6 +19,6 @@ jobs:
     - name: Run semverify demo command
       run: |
         cat $GITHUB_WORKSPACE/README.md
-        $HOME/.dotnet/tools/semverify $"(< $GITHUB_WORKSPACE/README.md)"
+        $HOME/.dotnet/tools/semverify $"(<$GITHUB_WORKSPACE/README.md)"
       env:
         DOTNET_ROOT: /opt/hostedtoolcache/dncs/3.0.100/x64
