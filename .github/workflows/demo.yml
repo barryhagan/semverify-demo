@@ -1,0 +1,22 @@
+name: semverify-demo
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.0.100'
+    - name: Install semverify
+      run: |
+        dotnet --info
+        dotnet tool install -g semverify-dotnet-tool --version 0.1.5-alpha01
+    - name: Run semverify demo command
+      run: $HOME/.dotnet/tools/semverify < $GITHUB_WORKSPACE/README.md
+      env:
+        DOTNET_ROOT: /opt/hostedtoolcache/dncs/3.0.100/x64
