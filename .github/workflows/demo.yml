@@ -18,7 +18,7 @@ jobs:
         dotnet tool install -g semverify-dotnet-tool --version 0.1.5-alpha01
     - name: Run semverify demo command
       run: |
-        cat $GITHUB_WORKSPACE/README.md
-        $HOME/.dotnet/tools/semverify $"(<$GITHUB_WORKSPACE/README.md)"
+        COMMAND=`cat $GITHUB_WORKSPACE/README.md`
+        $HOME/.dotnet/tools/semverify $COMMAND
       env:
         DOTNET_ROOT: /opt/hostedtoolcache/dncs/3.0.100/x64
