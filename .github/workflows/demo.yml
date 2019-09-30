@@ -18,6 +18,7 @@ jobs:
         dotnet tool install -g semverify-dotnet-tool --version 0.1.5-alpha01
     - name: Run semverify demo command
       run: |
+        cp $GITHUB_WORKSPACE/NuGet.Config ~/.nuget/NuGet/NuGet.Config
         COMMAND=`cat $GITHUB_WORKSPACE/README.md`
         $HOME/.dotnet/tools/semverify $COMMAND
       env:
