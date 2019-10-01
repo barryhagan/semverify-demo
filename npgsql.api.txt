@@ -2,7 +2,7 @@ namespace Npgsql
 {
     public interface INpgsqlDatabaseInfoFactory
     {
-        System.Threading.Tasks.Task<Npgsql.NpgsqlDatabaseInfo> Load(Npgsql.NpgsqlConnection conn, Npgsql.NpgsqlTimeout timeout, bool async);
+        System.Threading.Tasks.Task<Npgsql.NpgsqlDatabaseInfo?> Load(Npgsql.NpgsqlConnection conn, Npgsql.NpgsqlTimeout timeout, bool async);
     }
 
     public interface INpgsqlNameTranslator
@@ -13,28 +13,42 @@ namespace Npgsql
 
     public delegate void NoticeEventHandler(object sender, Npgsql.NpgsqlNoticeEventArgs e);
     public delegate void NotificationEventHandler(object sender, Npgsql.NpgsqlNotificationEventArgs e);
-    public sealed class NpgsqlBinaryExporter : Npgsql.ICancelable
+    public sealed class NpgsqlBinaryExporter : Npgsql.ICancelable, System.IAsyncDisposable
     {
         public bool IsNull { get; }
         public void Cancel() { }
         public void Dispose() { }
+        public System.Threading.Tasks.ValueTask DisposeAsync() { }
         public T Read<T>() { }
         public T Read<T>(NpgsqlTypes.NpgsqlDbType type) { }
+        public System.Threading.Tasks.ValueTask<T> ReadAsync<T>(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.ValueTask<T> ReadAsync<T>(NpgsqlTypes.NpgsqlDbType type, System.Threading.CancellationToken cancellationToken = null) { }
         public void Skip() { }
+        public System.Threading.Tasks.Task SkipAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public int StartRow() { }
+        public System.Threading.Tasks.ValueTask<int> StartRowAsync(System.Threading.CancellationToken cancellationToken = null) { }
     }
 
-    public sealed class NpgsqlBinaryImporter : Npgsql.ICancelable
+    public sealed class NpgsqlBinaryImporter : Npgsql.ICancelable, System.IAsyncDisposable
     {
         public void Close() { }
+        public System.Threading.Tasks.ValueTask CloseAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public void Complete() { }
+        public System.Threading.Tasks.ValueTask<ulong> CompleteAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public void Dispose() { }
+        public System.Threading.Tasks.ValueTask DisposeAsync() { }
         public void StartRow() { }
+        public System.Threading.Tasks.Task StartRowAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public void Write<T>(T value) { }
         public void Write<T>(T value, NpgsqlTypes.NpgsqlDbType npgsqlDbType) { }
         public void Write<T>(T value, string dataTypeName) { }
+        public System.Threading.Tasks.Task WriteAsync<T>(T value, System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.Task WriteAsync<T>(T value, NpgsqlTypes.NpgsqlDbType npgsqlDbType, System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.Task WriteAsync<T>(T value, string dataTypeName, System.Threading.CancellationToken cancellationToken = null) { }
         public void WriteNull() { }
+        public System.Threading.Tasks.Task WriteNullAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public void WriteRow(params object[] values) { }
+        public System.Threading.Tasks.Task WriteRowAsync(System.Threading.CancellationToken cancellationToken = null, params object[] values) { }
     }
 
     public sealed class NpgsqlCommand : System.Data.Common.DbCommand, System.ICloneable
@@ -47,16 +61,16 @@ namespace Npgsql
         public override string CommandText { get; set; }
         public override int CommandTimeout { get; set; }
         public override System.Data.CommandType CommandType { get; set; }
-        public new Npgsql.NpgsqlConnection Connection { get; set; }
-        protected override System.Data.Common.DbConnection DbConnection { get; set; }
+        public new Npgsql.NpgsqlConnection? Connection { get; set; }
+        protected override System.Data.Common.DbConnection? DbConnection { get; set; }
         protected override System.Data.Common.DbParameterCollection DbParameterCollection { get; }
-        protected override System.Data.Common.DbTransaction DbTransaction { get; set; }
+        protected override System.Data.Common.DbTransaction? DbTransaction { get; set; }
         public override bool DesignTimeVisible { get; set; }
         public bool IsPrepared { get; }
         public new Npgsql.NpgsqlParameterCollection Parameters { get; }
         public System.Collections.Generic.IReadOnlyList<Npgsql.NpgsqlStatement> Statements { get; }
-        public new Npgsql.NpgsqlTransaction Transaction { get; set; }
-        public bool[] UnknownResultTypeList { get; set; }
+        public new Npgsql.NpgsqlTransaction? Transaction { get; set; }
+        public bool?[]? UnknownResultTypeList { get; set; }
         public override System.Data.UpdateRowSource UpdatedRowSource { get; set; }
         public override void Cancel() { }
         public Npgsql.NpgsqlCommand Clone() { }
@@ -69,11 +83,13 @@ namespace Npgsql
         public override System.Threading.Tasks.Task<int> ExecuteNonQueryAsync(System.Threading.CancellationToken cancellationToken) { }
         public new Npgsql.NpgsqlDataReader ExecuteReader() { }
         public Npgsql.NpgsqlDataReader ExecuteReader(System.Data.CommandBehavior behavior) { }
+        public System.Threading.Tasks.Task<Npgsql.NpgsqlDataReader> ExecuteReaderAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.Task<Npgsql.NpgsqlDataReader> ExecuteReaderAsync(System.Data.CommandBehavior behavior, System.Threading.CancellationToken cancellationToken = null) { }
         public override object ExecuteScalar() { }
         public override System.Threading.Tasks.Task<object> ExecuteScalarAsync(System.Threading.CancellationToken cancellationToken) { }
         public override void Prepare() { }
         public System.Threading.Tasks.Task PrepareAsync() { }
-        public new System.Threading.Tasks.Task PrepareAsync(System.Threading.CancellationToken cancellationToken) { }
+        public new System.Threading.Tasks.Task PrepareAsync(System.Threading.CancellationToken cancellationToken = null) { }
         public void Unprepare() { }
     }
 
@@ -108,24 +124,25 @@ namespace Npgsql
         public override string ConnectionString { get; set; }
         public override int ConnectionTimeout { get; }
         public override string DataSource { get; }
-        public override string Database { get; }
+        public override string? Database { get; }
         protected override System.Data.Common.DbProviderFactory DbProviderFactory { get; }
         public System.Data.ConnectionState FullState { get; }
         public static Npgsql.TypeMapping.INpgsqlTypeMapper GlobalTypeMapper { get; }
         public bool HasIntegerDateTimes { get; }
-        public string Host { get; }
+        public string? Host { get; }
         public bool IntegratedSecurity { get; }
         public int Port { get; }
         public System.Version PostgreSqlVersion { get; }
         public System.Collections.Generic.IReadOnlyDictionary<string, string> PostgresParameters { get; }
         public int ProcessID { get; }
-        public Npgsql.ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; set; }
+        public Npgsql.ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; set; }
+        public Npgsql.ProvidePasswordCallback? ProvidePasswordCallback { get; set; }
         public override string ServerVersion { get; }
         public override System.Data.ConnectionState State { get; }
         public string Timezone { get; }
         public Npgsql.TypeMapping.INpgsqlTypeMapper TypeMapper { get; }
-        public System.Net.Security.RemoteCertificateValidationCallback UserCertificateValidationCallback { get; set; }
-        public string UserName { get; }
+        public System.Net.Security.RemoteCertificateValidationCallback? UserCertificateValidationCallback { get; set; }
+        public string? UserName { get; }
         public Npgsql.NpgsqlBinaryExporter BeginBinaryExport(string copyToCommand) { }
         public Npgsql.NpgsqlBinaryImporter BeginBinaryImport(string copyFromCommand) { }
         protected override System.Data.Common.DbTransaction BeginDbTransaction(System.Data.IsolationLevel isolationLevel) { }
@@ -139,22 +156,23 @@ namespace Npgsql
         public static void ClearPool(Npgsql.NpgsqlConnection connection) { }
         public Npgsql.NpgsqlConnection CloneWith(string connectionString) { }
         public override void Close() { }
+        public new System.Threading.Tasks.Task CloseAsync() { }
         public new Npgsql.NpgsqlCommand CreateCommand() { }
         protected override System.Data.Common.DbCommand CreateDbCommand() { }
         protected override void Dispose(bool disposing) { }
         public override void EnlistTransaction(System.Transactions.Transaction transaction) { }
         public override System.Data.DataTable GetSchema() { }
-        public override System.Data.DataTable GetSchema(string collectionName) { }
-        public override System.Data.DataTable GetSchema(string collectionName, string[] restrictions) { }
-        public void MapComposite<T>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where T : new() { }
-        public static void MapCompositeGlobally<T>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where T : new() { }
-        public void MapEnum<TEnum>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where TEnum : System.ValueType, struct, new() { }
-        public static void MapEnumGlobally<TEnum>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where TEnum : System.ValueType, struct, new() { }
+        public override System.Data.DataTable GetSchema(string? collectionName) { }
+        public override System.Data.DataTable GetSchema(string? collectionName, string?[]? restrictions) { }
+        public void MapComposite<T>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where T : new() { }
+        public static void MapCompositeGlobally<T>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where T : new() { }
+        public void MapEnum<TEnum>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where TEnum : enum, System.ValueType, struct, new() { }
+        public static void MapEnumGlobally<TEnum>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where TEnum : enum, System.ValueType, struct, new() { }
         public override void Open() { }
         public override System.Threading.Tasks.Task OpenAsync(System.Threading.CancellationToken cancellationToken) { }
         public void ReloadTypes() { }
-        public static void UnmapCompositeGlobally<T>(string pgName, Npgsql.INpgsqlNameTranslator nameTranslator = null) where T : new() { }
-        public static void UnmapEnumGlobally<TEnum>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where TEnum : System.ValueType, struct, new() { }
+        public static void UnmapCompositeGlobally<T>(string pgName, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where T : new() { }
+        public static void UnmapEnumGlobally<TEnum>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where TEnum : enum, System.ValueType, struct, new() { }
         public void UnprepareAll() { }
         public void Wait() { }
         public bool Wait(int timeout) { }
@@ -170,23 +188,24 @@ namespace Npgsql
         public NpgsqlConnectionStringBuilder() { }
         public NpgsqlConnectionStringBuilder(bool useOdbcRules) { }
         public NpgsqlConnectionStringBuilder(string connectionString) { }
-        public string ApplicationName { get; set; }
+        public string? ApplicationName { get; set; }
         public int AutoPrepareMinUsages { get; set; }
         public bool BackendTimeouts { get; set; }
         public bool CheckCertificateRevocation { get; set; }
-        public string ClientEncoding { get; set; }
+        public string? ClientCertificate { get; set; }
+        public string? ClientEncoding { get; set; }
         public int CommandTimeout { get; set; }
         public int ConnectionIdleLifetime { get; set; }
         public int ConnectionLifeTime { get; set; }
         public int ConnectionPruningInterval { get; set; }
         public bool ContinuousProcessing { get; set; }
         public bool ConvertInfinityDateTime { get; set; }
-        public string Database { get; set; }
+        public string? Database { get; set; }
         public string Encoding { get; set; }
         public bool Enlist { get; set; }
-        public string EntityAdminDatabase { get; set; }
-        public string EntityTemplateDatabase { get; set; }
-        public string Host { get; set; }
+        public string? EntityAdminDatabase { get; set; }
+        public string? EntityTemplateDatabase { get; set; }
+        public string? Host { get; set; }
         public bool IncludeRealm { get; set; }
         public bool IntegratedSecurity { get; set; }
         public int InternalCommandTimeout { get; set; }
@@ -198,14 +217,14 @@ namespace Npgsql
         public int MaxPoolSize { get; set; }
         public int MinPoolSize { get; set; }
         public bool NoResetOnClose { get; set; }
-        public string Passfile { get; set; }
-        public string Password { get; set; }
+        public string? Passfile { get; set; }
+        public string? Password { get; set; }
         public bool PersistSecurityInfo { get; set; }
         public bool Pooling { get; set; }
         public int Port { get; set; }
         public bool PreloadReader { get; set; }
         public int ReadBufferSize { get; set; }
-        public string SearchPath { get; set; }
+        public string? SearchPath { get; set; }
         public Npgsql.ServerCompatibilityMode ServerCompatibilityMode { get; set; }
         public int SocketReceiveBufferSize { get; set; }
         public int SocketSendBufferSize { get; set; }
@@ -214,27 +233,27 @@ namespace Npgsql
         public int TcpKeepAliveInterval { get; set; }
         public int TcpKeepAliveTime { get; set; }
         public int Timeout { get; set; }
-        public string Timezone { get; set; }
+        public string? Timezone { get; set; }
         public bool TrustServerCertificate { get; set; }
         public bool UseExtendedTypes { get; set; }
         public bool UsePerfCounters { get; set; }
         public bool UseSslStream { get; set; }
-        public string Username { get; set; }
-        public System.Collections.Generic.ICollection<object> Values { get; }
+        public string? Username { get; set; }
+        public System.Collections.Generic.ICollection<object?> Values { get; }
         public int WriteBufferSize { get; set; }
         public override object this[string keyword] { get; set; }
-        public void Add(System.Collections.Generic.KeyValuePair<string, object> item) { }
+        public void Add(System.Collections.Generic.KeyValuePair<string, object?> item) { }
         public override void Clear() { }
-        public bool Contains(System.Collections.Generic.KeyValuePair<string, object> item) { }
+        public bool Contains(System.Collections.Generic.KeyValuePair<string, object?> item) { }
         public override bool ContainsKey(string keyword) { }
-        public void CopyTo(System.Collections.Generic.KeyValuePair<string, object>[] array, int arrayIndex) { }
-        public override bool Equals(object obj) { }
-        public System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string, object>> GetEnumerator() { }
+        public void CopyTo(System.Collections.Generic.KeyValuePair<string, object?>[] array, int arrayIndex) { }
+        public override bool Equals(object? obj) { }
+        public System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string, object?>> GetEnumerator() { }
         public override int GetHashCode() { }
         protected override void GetProperties(System.Collections.Hashtable propertyDescriptors) { }
         public override bool Remove(string keyword) { }
-        public bool Remove(System.Collections.Generic.KeyValuePair<string, object> item) { }
-        public override bool TryGetValue(string keyword, out object value) { }
+        public bool Remove(System.Collections.Generic.KeyValuePair<string, object?> item) { }
+        public override bool TryGetValue(string keyword, out object? value) { }
     }
 
     public class NpgsqlConnectionStringPropertyAttribute : System.Attribute
@@ -247,11 +266,13 @@ namespace Npgsql
     public sealed class NpgsqlCopyTextReader : System.IO.StreamReader, Npgsql.ICancelable
     {
         public void Cancel() { }
+        public System.Threading.Tasks.Task CancelAsync() { }
     }
 
     public sealed class NpgsqlCopyTextWriter : System.IO.StreamWriter, Npgsql.ICancelable
     {
         public void Cancel() { }
+        public System.Threading.Tasks.Task CancelAsync() { }
     }
 
     public sealed class NpgsqlDataAdapter : System.Data.Common.DbDataAdapter
@@ -274,11 +295,11 @@ namespace Npgsql
 
     public abstract class NpgsqlDatabaseInfo
     {
-        protected NpgsqlDatabaseInfo() { }
+        protected NpgsqlDatabaseInfo(string host, int port, string databaseName, System.Version version) { }
         public virtual bool HasIntegerDateTimes { get; protected set; }
-        public string Host { get; protected set; }
-        public string Name { get; protected set; }
-        public int Port { get; protected set; }
+        public string Host { get; }
+        public string Name { get; }
+        public int Port { get; }
         public virtual bool SupportsAdvisoryLocks { get; }
         public virtual bool SupportsCloseAll { get; }
         public virtual bool SupportsDiscard { get; }
@@ -288,10 +309,73 @@ namespace Npgsql
         public virtual bool SupportsRangeTypes { get; }
         public virtual bool SupportsTransactions { get; protected set; }
         public virtual bool SupportsUnlisten { get; }
-        public System.Version Version { get; protected set; }
+        public System.Version Version { get; }
         protected abstract System.Collections.Generic.IEnumerable<Npgsql.PostgresTypes.PostgresType> GetTypes();
         protected static System.Version ParseServerVersion(string value) { }
         public static void RegisterFactory(Npgsql.INpgsqlDatabaseInfoFactory factory) { }
+    }
+
+    public sealed class NpgsqlDataReader : System.Data.Common.DbDataReader, System.Data.Common.IDbColumnSchemaGenerator
+    {
+        public override int Depth { get; }
+        public override int FieldCount { get; }
+        public override bool HasRows { get; }
+        public override bool IsClosed { get; }
+        public bool IsOnRow { get; }
+        public override int RecordsAffected { get; }
+        public System.Collections.Generic.IReadOnlyList<Npgsql.NpgsqlStatement> Statements { get; }
+        public override object this[int ordinal] { get; }
+        public override object this[string name] { get; }
+        public override void Close() { }
+        public new System.Threading.Tasks.Task CloseAsync() { }
+        protected override void Dispose(bool disposing) { }
+        public override bool GetBoolean(int ordinal) { }
+        public override byte GetByte(int ordinal) { }
+        public override long GetBytes(int ordinal, long dataOffset, byte?[]? buffer, int bufferOffset, int length) { }
+        public override char GetChar(int ordinal) { }
+        public override long GetChars(int ordinal, long dataOffset, char?[]? buffer, int bufferOffset, int length) { }
+        public System.Collections.ObjectModel.ReadOnlyCollection<Npgsql.Schema.NpgsqlDbColumn> GetColumnSchema() { }
+        public override string GetDataTypeName(int ordinal) { }
+        public uint GetDataTypeOID(int ordinal) { }
+        public NpgsqlTypes.NpgsqlDate GetDate(int ordinal) { }
+        public override System.DateTime GetDateTime(int ordinal) { }
+        public override decimal GetDecimal(int ordinal) { }
+        public override double GetDouble(int ordinal) { }
+        public override System.Collections.IEnumerator GetEnumerator() { }
+        public override System.Type GetFieldType(int ordinal) { }
+        public override T GetFieldValue<T>(int ordinal) { }
+        public override System.Threading.Tasks.Task<T> GetFieldValueAsync<T>(int ordinal, System.Threading.CancellationToken cancellationToken) { }
+        public override float GetFloat(int ordinal) { }
+        public override System.Guid GetGuid(int ordinal) { }
+        public override short GetInt16(int ordinal) { }
+        public override int GetInt32(int ordinal) { }
+        public override long GetInt64(int ordinal) { }
+        public NpgsqlTypes.NpgsqlTimeSpan GetInterval(int ordinal) { }
+        public override string GetName(int ordinal) { }
+        public override int GetOrdinal(string name) { }
+        public Npgsql.PostgresTypes.PostgresType GetPostgresType(int ordinal) { }
+        public override System.Type GetProviderSpecificFieldType(int ordinal) { }
+        public override object GetProviderSpecificValue(int ordinal) { }
+        public override int GetProviderSpecificValues(object[] values) { }
+        public override System.Data.DataTable GetSchemaTable() { }
+        public override System.IO.Stream GetStream(int ordinal) { }
+        public System.Threading.Tasks.Task<System.IO.Stream> GetStreamAsync(int ordinal) { }
+        public System.Threading.Tasks.Task<System.IO.Stream> GetStreamAsync(int ordinal, System.Threading.CancellationToken cancellationToken) { }
+        public override string GetString(int ordinal) { }
+        public override System.IO.TextReader GetTextReader(int ordinal) { }
+        public System.Threading.Tasks.Task<System.IO.TextReader> GetTextReaderAsync(int ordinal) { }
+        public System.Threading.Tasks.Task<System.IO.TextReader> GetTextReaderAsync(int ordinal, System.Threading.CancellationToken cancellationToken) { }
+        public System.TimeSpan GetTimeSpan(int ordinal) { }
+        public NpgsqlTypes.NpgsqlDateTime GetTimeStamp(int ordinal) { }
+        public override object GetValue(int ordinal) { }
+        public override int GetValues(object[] values) { }
+        public override bool IsDBNull(int ordinal) { }
+        public override System.Threading.Tasks.Task<bool> IsDBNullAsync(int ordinal, System.Threading.CancellationToken cancellationToken) { }
+        public override bool NextResult() { }
+        public override System.Threading.Tasks.Task<bool> NextResultAsync(System.Threading.CancellationToken cancellationToken) { }
+        public override bool Read() { }
+        public override System.Threading.Tasks.Task<bool> ReadAsync(System.Threading.CancellationToken cancellationToken) { }
+        public event System.EventHandler ReaderClosed;
     }
 
     public class NpgsqlException : System.Data.Common.DbException
@@ -312,7 +396,7 @@ namespace Npgsql
         public override System.Data.Common.DbConnectionStringBuilder CreateConnectionStringBuilder() { }
         public override System.Data.Common.DbDataAdapter CreateDataAdapter() { }
         public override System.Data.Common.DbParameter CreateParameter() { }
-        public object GetService(System.Type serviceType) { }
+        public object? GetService(System.Type serviceType) { }
     }
 
     public class NpgsqlLargeObjectManager
@@ -321,17 +405,17 @@ namespace Npgsql
         public bool Has64BitSupport { get; }
         public int MaxTransferBlockSize { get; set; }
         public uint Create(uint preferredOid = 0) { }
-        public System.Threading.Tasks.Task<uint> CreateAsync(uint preferredOid, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<uint> CreateAsync(uint preferredOid, System.Threading.CancellationToken cancellationToken = null) { }
         public void ExportRemote(uint oid, string path) { }
-        public System.Threading.Tasks.Task ExportRemoteAsync(uint oid, string path, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task ExportRemoteAsync(uint oid, string path, System.Threading.CancellationToken cancellationToken = null) { }
         public void ImportRemote(string path, uint oid = 0) { }
-        public System.Threading.Tasks.Task ImportRemoteAsync(string path, uint oid, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task ImportRemoteAsync(string path, uint oid, System.Threading.CancellationToken cancellationToken = null) { }
         public Npgsql.NpgsqlLargeObjectStream OpenRead(uint oid) { }
-        public System.Threading.Tasks.Task<Npgsql.NpgsqlLargeObjectStream> OpenReadAsync(uint oid, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<Npgsql.NpgsqlLargeObjectStream> OpenReadAsync(uint oid, System.Threading.CancellationToken cancellationToken = null) { }
         public Npgsql.NpgsqlLargeObjectStream OpenReadWrite(uint oid) { }
-        public System.Threading.Tasks.Task<Npgsql.NpgsqlLargeObjectStream> OpenReadWriteAsync(uint oid, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<Npgsql.NpgsqlLargeObjectStream> OpenReadWriteAsync(uint oid, System.Threading.CancellationToken cancellationToken = null) { }
         public void Unlink(uint oid) { }
-        public System.Threading.Tasks.Task UnlinkAsync(uint oid, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task UnlinkAsync(uint oid, System.Threading.CancellationToken cancellationToken = null) { }
     }
 
     public sealed class NpgsqlLargeObjectStream : System.IO.Stream
@@ -347,10 +431,11 @@ namespace Npgsql
         protected override void Dispose(bool disposing) { }
         public override void Flush() { }
         public System.Threading.Tasks.Task<long> GetLengthAsync() { }
+        public System.Threading.Tasks.Task<long> GetLengthAsync(System.Threading.CancellationToken cancellationToken) { }
         public override int Read(byte[] buffer, int offset, int count) { }
         public override System.Threading.Tasks.Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken) { }
         public override long Seek(long offset, System.IO.SeekOrigin origin) { }
-        public System.Threading.Tasks.Task<long> SeekAsync(long offset, System.IO.SeekOrigin origin, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<long> SeekAsync(long offset, System.IO.SeekOrigin origin, System.Threading.CancellationToken cancellationToken = null) { }
         public override void SetLength(long value) { }
         public System.Threading.Tasks.Task SetLength(long value, System.Threading.CancellationToken cancellationToken) { }
         public override void Write(byte[] buffer, int offset, int count) { }
@@ -371,13 +456,15 @@ namespace Npgsql
     public sealed class NpgsqlNotificationEventArgs : System.EventArgs
     {
         public string AdditionalInformation { get; }
+        public string Channel { get; }
         public string Condition { get; }
         public int PID { get; }
+        public string Payload { get; }
     }
 
     public sealed class NpgsqlOperationInProgressException : System.InvalidOperationException
     {
-        public Npgsql.NpgsqlCommand CommandInProgress { get; }
+        public Npgsql.NpgsqlCommand? CommandInProgress { get; }
     }
 
     public class NpgsqlParameter : System.Data.Common.DbParameter, System.ICloneable
@@ -392,20 +479,20 @@ namespace Npgsql
         public NpgsqlParameter(string parameterName, System.Data.DbType parameterType, int size, string sourceColumn) { }
         public NpgsqlParameter(string parameterName, NpgsqlTypes.NpgsqlDbType parameterType, int size, string sourceColumn, System.Data.ParameterDirection direction, bool isNullable, byte precision, byte scale, System.Data.DataRowVersion sourceVersion, object value) { }
         public NpgsqlParameter(string parameterName, System.Data.DbType parameterType, int size, string sourceColumn, System.Data.ParameterDirection direction, bool isNullable, byte precision, byte scale, System.Data.DataRowVersion sourceVersion, object value) { }
-        public Npgsql.NpgsqlParameterCollection Collection { get; set; }
-        public object ConvertedValue { get; set; }
-        public string DataTypeName { get; set; }
+        public Npgsql.NpgsqlParameterCollection? Collection { get; set; }
+        public object? ConvertedValue { get; set; }
+        public string? DataTypeName { get; set; }
         public System.Data.DbType DbType { get; set; }
         public System.Data.ParameterDirection Direction { get; set; }
         public bool IsNullable { get; set; }
         public NpgsqlTypes.NpgsqlDbType NpgsqlDbType { get; set; }
         public object NpgsqlValue { get; set; }
         public string ParameterName { get; set; }
-        public Npgsql.PostgresTypes.PostgresType PostgresType { get; }
+        public Npgsql.PostgresTypes.PostgresType? PostgresType { get; }
         public byte Precision { get; set; }
         public byte Scale { get; set; }
         public int Size { get; set; }
-        public string SourceColumn { get; set; }
+        public string? SourceColumn { get; set; }
         public bool SourceColumnNullMapping { get; set; }
         public System.Data.DataRowVersion SourceVersion { get; set; }
         public override object Value { get; set; }
@@ -466,7 +553,7 @@ namespace Npgsql
         protected override void SetParameter(string parameterName, System.Data.Common.DbParameter value) { }
         protected override void SetParameter(int index, System.Data.Common.DbParameter value) { }
         public Npgsql.NpgsqlParameter[] ToArray() { }
-        public bool TryGetValue(string parameterName, out Npgsql.NpgsqlParameter parameter) { }
+        public bool TryGetValue(string parameterName, out Npgsql.NpgsqlParameter? parameter) { }
     }
 
     public sealed class NpgsqlRawCopyStream : System.IO.Stream, Npgsql.ICancelable
@@ -477,18 +564,23 @@ namespace Npgsql
         public override long Length { get; }
         public override long Position { get; set; }
         public void Cancel() { }
+        public System.Threading.Tasks.Task CancelAsync() { }
         protected override void Dispose(bool disposing) { }
         public override void Flush() { }
+        public override System.Threading.Tasks.Task FlushAsync(System.Threading.CancellationToken cancellationToken) { }
         public override int Read(byte[] buffer, int offset, int count) { }
+        public override System.Threading.Tasks.Task<int> ReadAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken) { }
         public override long Seek(long offset, System.IO.SeekOrigin origin) { }
         public override void SetLength(long value) { }
         public override void Write(byte[] buffer, int offset, int count) { }
+        public override System.Threading.Tasks.Task WriteAsync(byte[] buffer, int offset, int count, System.Threading.CancellationToken cancellationToken) { }
     }
 
     public sealed class NpgsqlReadBuffer
     {
         public Npgsql.NpgsqlConnection Connection { get; }
         public System.Threading.Tasks.Task Ensure(int count, bool async) { }
+        public System.ReadOnlySpan<byte> GetNullTerminatedBytes() { }
         public System.IO.Stream GetStream(int len, bool canSeek) { }
         public byte ReadByte() { }
         public void ReadBytes(System.Span<byte> output) { }
@@ -503,10 +595,13 @@ namespace Npgsql
         public int ReadInt32(bool littleEndian) { }
         public long ReadInt64() { }
         public long ReadInt64(bool littleEndian) { }
+        public System.ReadOnlyMemory<byte> ReadMemory(int len) { }
         public string ReadNullTerminatedString() { }
+        public string ReadNullTerminatedStringRelaxed() { }
         public sbyte ReadSByte() { }
         public float ReadSingle() { }
         public float ReadSingle(bool littleEndian) { }
+        public System.ReadOnlySpan<byte> ReadSpan(int len) { }
         public string ReadString(int byteLen) { }
         public ushort ReadUInt16() { }
         public ushort ReadUInt16(bool littleEndian) { }
@@ -550,14 +645,17 @@ namespace Npgsql
         public override System.Data.IsolationLevel IsolationLevel { get; }
         public override void Commit() { }
         public System.Threading.Tasks.Task CommitAsync() { }
-        public new System.Threading.Tasks.Task CommitAsync(System.Threading.CancellationToken cancellationToken) { }
+        public new System.Threading.Tasks.Task CommitAsync(System.Threading.CancellationToken cancellationToken = null) { }
         protected override void Dispose(bool disposing) { }
         public void Release(string name) { }
+        public System.Threading.Tasks.Task ReleaseAsync(string name, System.Threading.CancellationToken cancellationToken = null) { }
         public override void Rollback() { }
         public void Rollback(string name) { }
         public System.Threading.Tasks.Task RollbackAsync() { }
-        public new System.Threading.Tasks.Task RollbackAsync(System.Threading.CancellationToken cancellationToken) { }
+        public new System.Threading.Tasks.Task RollbackAsync(System.Threading.CancellationToken cancellationToken = null) { }
+        public System.Threading.Tasks.Task RollbackAsync(string name, System.Threading.CancellationToken cancellationToken = null) { }
         public void Save(string name) { }
+        public System.Threading.Tasks.Task SaveAsync(string name, System.Threading.CancellationToken cancellationToken = null) { }
     }
 
     public sealed class NpgsqlWriteBuffer
@@ -592,58 +690,305 @@ namespace Npgsql
         public void WriteUInt64(ulong value, bool littleEndian) { }
     }
 
+    public static class PostgresErrorCodes
+    {
+        public const string ActiveSqlTransaction;
+        public const string AdminShutdown;
+        public const string AmbiguousAlias;
+        public const string AmbiguousColumn;
+        public const string AmbiguousFunction;
+        public const string AmbiguousParameter;
+        public const string ArraySubscriptError;
+        public const string AssertFailure;
+        public const string BadCopyFileFormat;
+        public const string BranchTransactionAlreadyActive;
+        public const string CannotCoerce;
+        public const string CannotConnectNow;
+        public const string CantChangeRuntimeParam;
+        public const string CardinalityViolation;
+        public const string CaseNotFound;
+        public const string CharacterNotInRepertoire;
+        public const string CheckViolation;
+        public const string CollationMismatch;
+        public const string ConfigFileError;
+        public const string ConfigurationLimitExceeded;
+        public const string ConnectionDoesNotExist;
+        public const string ConnectionException;
+        public const string ConnectionFailure;
+        public const string ContainingSqlNotPermittedExternalRoutineException;
+        public const string CrashShutdown;
+        public const string DataCorrupted;
+        public const string DataException;
+        public const string DatabaseDropped;
+        public const string DatatypeMismatch;
+        public const string DatetimeFieldOverflow;
+        public const string DeadlockDetected;
+        public const string DependentObjectsStillExist;
+        public const string DependentPrivilegeDescriptorsStillExist;
+        public const string DeprecatedFeatureWarning;
+        public const string DiagnosticsException;
+        public const string DiskFull;
+        public const string DivisionByZero;
+        public const string DuplicateAlias;
+        public const string DuplicateColumn;
+        public const string DuplicateCursor;
+        public const string DuplicateDatabase;
+        public const string DuplicateFile;
+        public const string DuplicateFunction;
+        public const string DuplicateObject;
+        public const string DuplicatePreparedStatement;
+        public const string DuplicateSchema;
+        public const string DuplicateTable;
+        public const string DynamicResultSetsReturnedWarning;
+        public const string ErrorInAssignment;
+        public const string EscapeCharacterConflict;
+        public const string EventTriggerProtocolViolatedExternalRoutineInvocationException;
+        public const string ExclusionViolation;
+        public const string ExternalRoutineException;
+        public const string ExternalRoutineInvocationException;
+        public const string FdwColumnNameNotFound;
+        public const string FdwDynamicParameterValueNeeded;
+        public const string FdwError;
+        public const string FdwFunctionSequenceError;
+        public const string FdwInconsistentDescriptorInformation;
+        public const string FdwInvalidAttributeValue;
+        public const string FdwInvalidColumnName;
+        public const string FdwInvalidColumnNumber;
+        public const string FdwInvalidDataType;
+        public const string FdwInvalidDataTypeDescriptors;
+        public const string FdwInvalidDescriptorFieldIdentifier;
+        public const string FdwInvalidHandle;
+        public const string FdwInvalidOptionIndex;
+        public const string FdwInvalidOptionName;
+        public const string FdwInvalidStringFormat;
+        public const string FdwInvalidStringLengthOrBufferLength;
+        public const string FdwInvalidUseOfNullPointer;
+        public const string FdwNoSchemas;
+        public const string FdwOptionNameNotFound;
+        public const string FdwOutOfMemory;
+        public const string FdwReplyHandle;
+        public const string FdwSchemaNotFound;
+        public const string FdwTableNotFound;
+        public const string FdwTooManyHandles;
+        public const string FdwUnableToCreateExecution;
+        public const string FdwUnableToCreateReply;
+        public const string FdwUnableToEstablishConnection;
+        public const string FeatureNotSupported;
+        public const string FloatingPointException;
+        public const string ForeignKeyViolation;
+        public const string FunctionExecutedNoReturnStatementSqlRoutineException;
+        public const string GroupingError;
+        public const string HeldCursorRequiresSameIsolationLevel;
+        public const string ImplicitZeroBitPaddingWarning;
+        public const string InFailedSqlTransaction;
+        public const string InappropriateAccessModeForBranchTransaction;
+        public const string InappropriateIsolationLevelForBranchTransaction;
+        public const string IndeterminateCollation;
+        public const string IndeterminateDatatype;
+        public const string IndexCorrupted;
+        public const string IndicatorOverflow;
+        public const string InsufficientPrivilege;
+        public const string InsufficientResources;
+        public const string IntegrityConstraintViolation;
+        public const string InternalError;
+        public const string IntervalFieldOverflow;
+        public const string InvalidArgumentForLogarithm;
+        public const string InvalidArgumentForNthValueFunction;
+        public const string InvalidArgumentForNtileFunction;
+        public const string InvalidArgumentForPowerFunction;
+        public const string InvalidArgumentForWidthBucketFunction;
+        public const string InvalidAuthorizationSpecification;
+        public const string InvalidBinaryRepresentation;
+        public const string InvalidCatalogName;
+        public const string InvalidCharacterValueForCast;
+        public const string InvalidColumnDefinition;
+        public const string InvalidColumnReference;
+        public const string InvalidCursorDefinition;
+        public const string InvalidCursorName;
+        public const string InvalidCursorState;
+        public const string InvalidDatabaseDefinition;
+        public const string InvalidDatetimeFormat;
+        public const string InvalidEscapeCharacter;
+        public const string InvalidEscapeOctet;
+        public const string InvalidEscapeSequence;
+        public const string InvalidForeignKey;
+        public const string InvalidFunctionDefinition;
+        public const string InvalidGrantOperation;
+        public const string InvalidGrantor;
+        public const string InvalidIndicatorParameterValue;
+        public const string InvalidLocatorSpecification;
+        public const string InvalidName;
+        public const string InvalidObjectDefinition;
+        public const string InvalidParameterValue;
+        public const string InvalidPassword;
+        public const string InvalidPreparedStatementDefinition;
+        public const string InvalidRecursion;
+        public const string InvalidRegularExpression;
+        public const string InvalidRoleSpecification;
+        public const string InvalidRowCountInLimitClause;
+        public const string InvalidRowCountInResultOffsetClause;
+        public const string InvalidSavepointSpecification;
+        public const string InvalidSchemaDefinition;
+        public const string InvalidSchemaName;
+        public const string InvalidSqlStatementName;
+        public const string InvalidSqlstateReturnedExternalRoutineInvocationException;
+        public const string InvalidTableDefinition;
+        public const string InvalidTablesampleArgument;
+        public const string InvalidTablesampleRepeat;
+        public const string InvalidTextRepresentation;
+        public const string InvalidTimeZoneDisplacementValue;
+        public const string InvalidTransactionInitiation;
+        public const string InvalidTransactionState;
+        public const string InvalidTransactionTermination;
+        public const string InvalidUseOfEscapeCharacter;
+        public const string InvalidXmlComment;
+        public const string InvalidXmlContent;
+        public const string InvalidXmlDocument;
+        public const string InvalidXmlProcessingInstruction;
+        public const string IoError;
+        public const string LocatorException;
+        public const string LockFileExists;
+        public const string LockNotAvailable;
+        public const string ModifyingSqlDataNotPermittedExternalRoutineException;
+        public const string ModifyingSqlDataNotPermittedSqlRoutineException;
+        public const string MostSpecificTypeMismatch;
+        public const string NameTooLong;
+        public const string NoActiveSqlTransaction;
+        public const string NoActiveSqlTransactionForBranchTransaction;
+        public const string NoAdditionalDynamicResultSetsReturned;
+        public const string NoData;
+        public const string NoDataFound;
+        public const string NonstandardUseOfEscapeCharacter;
+        public const string NotAnXmlDocument;
+        public const string NotNullViolation;
+        public const string NullValueEliminatedInSetFunctionWarning;
+        public const string NullValueNoIndicatorParameter;
+        public const string NullValueNotAllowed;
+        public const string NullValueNotAllowedExternalRoutineInvocationException;
+        public const string NumericValueOutOfRange;
+        public const string ObjectInUse;
+        public const string ObjectNotInPrerequisiteState;
+        public const string OperatorIntervention;
+        public const string OutOfMemory;
+        public const string PlpgsqlError;
+        public const string PrivilegeNotGrantedWarning;
+        public const string PrivilegeNotRevokedWarning;
+        public const string ProgramLimitExceeded;
+        public const string ProhibitedSqlStatementAttemptedExternalRoutineException;
+        public const string ProhibitedSqlStatementAttemptedSqlRoutineException;
+        public const string ProtocolViolation;
+        public const string QueryCanceled;
+        public const string RaiseException;
+        public const string ReadOnlySqlTransaction;
+        public const string ReadingSqlDataNotPermittedExternalRoutineException;
+        public const string ReadingSqlDataNotPermittedSqlRoutineException;
+        public const string ReservedName;
+        public const string RestrictViolation;
+        public const string SavepointException;
+        public const string SchemaAndDataStatementMixingNotSupported;
+        public const string SerializationFailure;
+        public const string SnapshotFailure;
+        public const string SqlClientUnableToEstablishSqlConnection;
+        public const string SqlRoutineException;
+        public const string SqlServerRejectedEstablishmentOfSqlConnection;
+        public const string SqlStatementNotYetComplete;
+        public const string SrfProtocolViolatedExternalRoutineInvocationException;
+        public const string StackedDiagnosticsAccessedWithoutActiveHandler;
+        public const string StatementCompletionUnknown;
+        public const string StatementTooComplex;
+        public const string StringDataLengthMismatch;
+        public const string StringDataRightTruncation;
+        public const string StringDataRightTruncationWarning;
+        public const string SubstringError;
+        public const string SuccessfulCompletion;
+        public const string SyntaxError;
+        public const string SyntaxErrorOrAccessRuleViolation;
+        public const string SystemError;
+        public const string TooManyArguments;
+        public const string TooManyColumns;
+        public const string TooManyConnections;
+        public const string TooManyRows;
+        public const string TransactionIntegrityConstraintViolation;
+        public const string TransactionResolutionUnknown;
+        public const string TransactionRollback;
+        public const string TriggerProtocolViolatedExternalRoutineInvocationException;
+        public const string TriggeredActionException;
+        public const string TriggeredDataChangeViolation;
+        public const string TrimError;
+        public const string UndefinedColumn;
+        public const string UndefinedFile;
+        public const string UndefinedFunction;
+        public const string UndefinedObject;
+        public const string UndefinedParameter;
+        public const string UndefinedTable;
+        public const string UniqueViolation;
+        public const string UnterminatedCString;
+        public const string UntranslatableCharacter;
+        public const string Warning;
+        public const string WindowingError;
+        public const string WithCheckOptionViolation;
+        public const string WrongObjectType;
+        public const string ZeroLengthCharacterString;
+    }
+
     public sealed class PostgresException : Npgsql.NpgsqlException
     {
         public PostgresException() { }
+        public PostgresException(string messageText, string severity, string invariantSeverity, string sqlState) { }
         public string Code { get; }
-        public string ColumnName { get; set; }
-        public string ConstraintName { get; set; }
+        public string? ColumnName { get; }
+        public string? ConstraintName { get; }
         public override System.Collections.IDictionary Data { get; }
-        public string DataTypeName { get; set; }
-        public string Detail { get; set; }
-        public string File { get; set; }
-        public string Hint { get; set; }
-        public int InternalPosition { get; set; }
-        public string InternalQuery { get; set; }
+        public string? DataTypeName { get; }
+        public string? Detail { get; }
+        public string? File { get; }
+        public string? Hint { get; }
+        public int InternalPosition { get; }
+        public string? InternalQuery { get; }
+        public string InvariantSeverity { get; }
         public override bool IsTransient { get; }
-        public string Line { get; set; }
+        public string? Line { get; }
         public override string Message { get; }
-        public string MessageText { get; set; }
-        public int Position { get; set; }
-        public string Routine { get; set; }
-        public string SchemaName { get; set; }
-        public string Severity { get; set; }
-        public string SqlState { get; set; }
-        public Npgsql.NpgsqlStatement Statement { get; }
-        public string TableName { get; set; }
-        public string Where { get; set; }
+        public string MessageText { get; }
+        public int Position { get; }
+        public string? Routine { get; }
+        public string? SchemaName { get; }
+        public string Severity { get; }
+        public string SqlState { get; }
+        public Npgsql.NpgsqlStatement? Statement { get; }
+        public string? TableName { get; }
+        public string? Where { get; }
         public override void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+        public override string ToString() { }
     }
 
     public sealed class PostgresNotice
     {
         public PostgresNotice() { }
+        public PostgresNotice(string severity, string invariantSeverity, string sqlState, string messageText) { }
         public string Code { get; }
-        public string ColumnName { get; set; }
-        public string ConstraintName { get; set; }
-        public string DataTypeName { get; set; }
-        public string Detail { get; set; }
-        public string File { get; set; }
-        public string Hint { get; set; }
+        public string? ColumnName { get; set; }
+        public string? ConstraintName { get; set; }
+        public string? DataTypeName { get; set; }
+        public string? Detail { get; set; }
+        public string? File { get; set; }
+        public string? Hint { get; set; }
         public int InternalPosition { get; set; }
-        public string InternalQuery { get; set; }
-        public string Line { get; set; }
+        public string? InternalQuery { get; set; }
+        public string InvariantSeverity { get; }
+        public string? Line { get; set; }
         public string MessageText { get; set; }
         public int Position { get; set; }
-        public string Routine { get; set; }
-        public string SchemaName { get; set; }
+        public string? Routine { get; set; }
+        public string? SchemaName { get; set; }
         public string Severity { get; set; }
         public string SqlState { get; set; }
-        public string TableName { get; set; }
-        public string Where { get; set; }
+        public string? TableName { get; set; }
+        public string? Where { get; set; }
     }
 
     public delegate void ProvideClientCertificatesCallback(System.Security.Cryptography.X509Certificates.X509CertificateCollection certificates);
+    public delegate string ProvidePasswordCallback(string host, int port, string database, string username);
     public enum ServerCompatibilityMode
     {
         None = 0,
@@ -700,7 +1045,7 @@ namespace Npgsql.Logging
     {
         protected NpgsqlLogger() { }
         public abstract bool IsEnabled(Npgsql.Logging.NpgsqlLogLevel level);
-        public abstract void Log(Npgsql.Logging.NpgsqlLogLevel level, int connectorId, string msg, System.Exception exception = null);
+        public abstract void Log(Npgsql.Logging.NpgsqlLogLevel level, int connectorId, string msg, System.Exception? exception = null);
     }
 
     public enum NpgsqlLogLevel
@@ -786,14 +1131,14 @@ namespace Npgsql.PostgresTypes
     {
         protected PostgresType(string ns, string name, uint oid) { }
         protected PostgresType(string ns, string name, string internalName, uint oid) { }
-        public Npgsql.PostgresTypes.PostgresArrayType Array { get; }
+        public Npgsql.PostgresTypes.PostgresArrayType? Array { get; }
         public string DisplayName { get; }
         public string FullName { get; }
         public string InternalName { get; }
         public string Name { get; }
         public string Namespace { get; }
         public uint OID { get; }
-        public Npgsql.PostgresTypes.PostgresRangeType Range { get; }
+        public Npgsql.PostgresTypes.PostgresRangeType? Range { get; }
         public override string ToString() { }
     }
 
@@ -817,7 +1162,7 @@ namespace Npgsql.Schema
         public new int? ColumnSize { get; protected internal set; }
         public new System.Type DataType { get; protected internal set; }
         public new string DataTypeName { get; protected internal set; }
-        public string DefaultValue { get; }
+        public string? DefaultValue { get; }
         public new bool? IsAutoIncrement { get; protected internal set; }
         public new bool? IsKey { get; protected internal set; }
         public new bool? IsLong { get; protected internal set; }
@@ -830,7 +1175,7 @@ namespace Npgsql.Schema
         public uint TableOID { get; }
         public uint TypeOID { get; }
         public new string UdtAssemblyQualifiedName { get; protected internal set; }
-        public override object this[string propertyName] { get; }
+        public override object? this[string propertyName] { get; }
     }
 
 }
@@ -838,23 +1183,67 @@ namespace Npgsql.TypeHandlers
 {
     public class ArrayHandler<TElement> : Npgsql.TypeHandlers.ArrayHandler
     {
-        public ArrayHandler(Npgsql.TypeHandling.NpgsqlTypeHandler elementHandler, int lowerBound = 1) { }
-        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        protected System.Threading.Tasks.ValueTask<System.Array> ReadArray<T>(Npgsql.NpgsqlReadBuffer buf, bool async) { }
-        protected System.Threading.Tasks.ValueTask<System.Collections.Generic.List<T>> ReadList<T>(Npgsql.NpgsqlReadBuffer buf, bool async) { }
-        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter = null) { }
-        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        public ArrayHandler(Npgsql.PostgresTypes.PostgresType arrayPostgresType, Npgsql.TypeHandling.NpgsqlTypeHandler elementHandler, int lowerBound = 1) { }
+        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected System.Threading.Tasks.ValueTask<System.Array> ReadArray<TAnyElement>(Npgsql.NpgsqlReadBuffer buf, bool async) { }
+        protected System.Threading.Tasks.ValueTask<System.Collections.Generic.List<TAnyElement>> ReadList<TAnyElement>(Npgsql.NpgsqlReadBuffer buf, bool async) { }
+        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class BitStringArrayHandler : Npgsql.TypeHandlers.ArrayHandler<System.Collections.BitArray>
+    {
+        public BitStringArrayHandler(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.TypeHandlers.BitStringHandler elementHandler) { }
+        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+    }
+
+    public class BitStringHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<System.Collections.BitArray>, Npgsql.TypeHandling.INpgsqlTypeHandler<bool>, Npgsql.TypeHandling.INpgsqlTypeHandler<string>, Npgsql.TypeHandling.INpgsqlTypeHandler<System.Collections.Specialized.BitVector32>
+    {
+        public BitStringHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresArrayType backendType) { }
+        public override System.Threading.Tasks.ValueTask<System.Collections.BitArray> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.Collections.BitArray value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(System.Collections.Specialized.BitVector32 value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(bool value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(string value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(System.Collections.BitArray value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(System.Collections.Specialized.BitVector32 value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(bool value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(string value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class BoolHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<bool>
+    {
+        public BoolHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override bool Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(bool value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(bool value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
     }
 
     public class ByteaHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<byte[]>, Npgsql.TypeHandling.INpgsqlTypeHandler<System.ArraySegment<byte>>
     {
-        public ByteaHandler() { }
-        public override System.Threading.Tasks.ValueTask<byte[]> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public override int ValidateAndGetLength(byte[] value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public int ValidateAndGetLength(System.ArraySegment<byte> value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public override System.Threading.Tasks.Task Write(byte[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public System.Threading.Tasks.Task Write(System.ArraySegment<byte> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        public ByteaHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Threading.Tasks.ValueTask<byte[]> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(byte[] value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(System.ArraySegment<byte> value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(byte[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(System.ArraySegment<byte> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class HstoreHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<System.Collections.Generic.Dictionary<string, string>>, Npgsql.TypeHandling.INpgsqlTypeHandler<System.Collections.Generic.IDictionary<string, string>>
+    {
+        public override System.Threading.Tasks.ValueTask<System.Collections.Generic.Dictionary<string, string>> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public int ValidateAndGetLength(System.Collections.Generic.IDictionary<string, string?> value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(System.Collections.Generic.Dictionary<string, string?> value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public System.Threading.Tasks.Task Write(System.Collections.Generic.IDictionary<string, string?> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public override System.Threading.Tasks.Task Write(System.Collections.Generic.Dictionary<string, string?> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class HstoreHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.Collections.Generic.Dictionary<string, string>>
+    {
+        public HstoreHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.Collections.Generic.Dictionary<string, string?>> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
     }
 
     public interface IEnumTypeHandlerFactory
@@ -862,64 +1251,445 @@ namespace Npgsql.TypeHandlers
         Npgsql.INpgsqlNameTranslator NameTranslator { get; }
     }
 
-    public interface IMappedCompositeTypeHandlerFactory
+    public class InternalCharHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<char>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<byte>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<int>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<long>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<short>
     {
-        Npgsql.INpgsqlNameTranslator NameTranslator { get; }
-    }
-
-    public class JsonbHandler : Npgsql.TypeHandlers.TextHandler
-    {
-        protected internal JsonbHandler(Npgsql.NpgsqlConnection connection) { }
-        public override System.IO.TextReader GetTextReader(System.IO.Stream stream) { }
-        public override System.Threading.Tasks.ValueTask<string> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public override int ValidateAndGetLength(string value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public override int ValidateAndGetLength(char[] value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public override int ValidateAndGetLength(System.ArraySegment<char> value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public override System.Threading.Tasks.Task Write(string value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public override System.Threading.Tasks.Task Write(char[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public override System.Threading.Tasks.Task Write(System.ArraySegment<char> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        public InternalCharHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override char Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(char value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(short value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(int value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(long value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(char value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(byte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(short value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(int value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(long value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
     }
 
     public class JsonbHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<string>
     {
         public JsonbHandlerFactory() { }
-        protected override Npgsql.TypeHandling.NpgsqlTypeHandler<string> Create(Npgsql.NpgsqlConnection conn) { }
+        public JsonbHandlerFactory(System.Text.Json.JsonSerializerOptions serializerOptions) { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<string> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class JsonHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<string>, Npgsql.TypeHandling.ITextReaderHandler
+    {
+        protected internal JsonHandler(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection connection, bool isJsonb, System.Text.Json.JsonSerializerOptions? serializerOptions = null) { }
+        public System.IO.TextReader GetTextReader(System.IO.Stream stream) { }
+        public override System.Threading.Tasks.ValueTask<string> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected internal override System.Threading.Tasks.ValueTask<T> Read<T>(Npgsql.NpgsqlReadBuffer buf, int byteLen, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(string value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(string value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        protected override System.Threading.Tasks.Task WriteWithLength<TAny>(TAny value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class JsonHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<string>
+    {
+        public JsonHandlerFactory() { }
+        public JsonHandlerFactory(System.Text.Json.JsonSerializerOptions serializerOptions) { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<string> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
     }
 
     public class RangeHandler<TElement> : Npgsql.TypeHandlers.RangeHandler, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlRange<TElement>>
     {
-        public RangeHandler(Npgsql.TypeHandling.NpgsqlTypeHandler elementHandler) { }
-        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresType arrayBackendType) { }
-        public System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlRange<TElement>> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription) { }
-        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlRange<TElement> value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter = null) { }
-        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlRange<TElement> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        public RangeHandler(Npgsql.PostgresTypes.PostgresType rangePostgresType, Npgsql.TypeHandling.NpgsqlTypeHandler elementHandler) { }
+        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresArrayType arrayBackendType) { }
+        public System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlRange<TElement>> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlRange<TElement> value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlRange<TElement> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
     }
 
     public class TextHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<string>, Npgsql.TypeHandling.INpgsqlTypeHandler<byte[]>, Npgsql.TypeHandling.INpgsqlTypeHandler<char[]>, Npgsql.TypeHandling.INpgsqlTypeHandler<char>, Npgsql.TypeHandling.INpgsqlTypeHandler<System.ArraySegment<char>>, Npgsql.TypeHandling.ITextReaderHandler
     {
-        protected internal TextHandler(Npgsql.NpgsqlConnection connection) { }
+        protected internal TextHandler(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection connection) { }
+        protected internal TextHandler(Npgsql.PostgresTypes.PostgresType postgresType, System.Text.Encoding encoding) { }
         public virtual System.IO.TextReader GetTextReader(System.IO.Stream stream) { }
-        public override System.Threading.Tasks.ValueTask<string> Read(Npgsql.NpgsqlReadBuffer buf, int byteLen, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public override int ValidateAndGetLength(string value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public virtual int ValidateAndGetLength(char[] value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public virtual int ValidateAndGetLength(System.ArraySegment<char> value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public int ValidateAndGetLength(char value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public int ValidateAndGetLength(byte[] value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public override System.Threading.Tasks.Task Write(string value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public virtual System.Threading.Tasks.Task Write(char[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public virtual System.Threading.Tasks.Task Write(System.ArraySegment<char> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public System.Threading.Tasks.Task Write(char value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        public System.Threading.Tasks.Task Write(byte[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        public override System.Threading.Tasks.ValueTask<string> Read(Npgsql.NpgsqlReadBuffer buf, int byteLen, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(string value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public virtual int ValidateAndGetLength(char[] value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public virtual int ValidateAndGetLength(System.ArraySegment<char> value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(char value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte[] value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(string value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public virtual System.Threading.Tasks.Task Write(char[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public virtual System.Threading.Tasks.Task Write(System.ArraySegment<char> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(char value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(byte[] value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
     }
 
     public class TextHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<string>
     {
         public TextHandlerFactory() { }
-        protected override Npgsql.TypeHandling.NpgsqlTypeHandler<string> Create(Npgsql.NpgsqlConnection conn) { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<string> Create(Npgsql.PostgresTypes.PostgresType pgType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class UuidHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<System.Guid>
+    {
+        public UuidHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Guid Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.Guid value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.Guid value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+}
+namespace Npgsql.TypeHandlers.CompositeHandlers
+{
+    public interface IMappedCompositeTypeHandlerFactory
+    {
+        Npgsql.INpgsqlNameTranslator NameTranslator { get; }
+    }
+
+}
+namespace Npgsql.TypeHandlers.DateTimeHandlers
+{
+    public class DateHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandlerWithPsv<System.DateTime, NpgsqlTypes.NpgsqlDate>
+    {
+        public override System.DateTime Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected override NpgsqlTypes.NpgsqlDate ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.DateTime value, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlDate value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.DateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlDate value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class DateHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.DateTime>
+    {
+        public DateHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.DateTime> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class IntervalHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandlerWithPsv<System.TimeSpan, NpgsqlTypes.NpgsqlTimeSpan>
+    {
+        public override System.TimeSpan Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected override NpgsqlTypes.NpgsqlTimeSpan ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.TimeSpan value, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlTimeSpan value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlTimeSpan value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.TimeSpan value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class IntervalHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.TimeSpan>
+    {
+        public IntervalHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.TimeSpan> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class TimeHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<System.TimeSpan>
+    {
+        public override System.TimeSpan Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.TimeSpan value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.TimeSpan value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class TimeHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.TimeSpan>
+    {
+        public TimeHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.TimeSpan> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class TimestampHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandlerWithPsv<System.DateTime, NpgsqlTypes.NpgsqlDateTime>
+    {
+        protected readonly bool ConvertInfinityDateTime;
+        public override System.DateTime Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected override NpgsqlTypes.NpgsqlDateTime ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected NpgsqlTypes.NpgsqlDateTime ReadTimeStamp(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.DateTime value, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlDateTime value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlDateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.DateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class TimestampHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.DateTime>
+    {
+        public TimestampHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.DateTime> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class TimestampTzHandler : Npgsql.TypeHandlers.DateTimeHandlers.TimestampHandler, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<System.DateTimeOffset>
+    {
+        public override System.DateTime Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected override NpgsqlTypes.NpgsqlDateTime ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public int ValidateAndGetLength(System.DateTimeOffset value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlDateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.DateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(System.DateTimeOffset value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class TimestampTzHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.DateTime>
+    {
+        public TimestampTzHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.DateTime> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+    public class TimeTzHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<System.DateTimeOffset>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<System.DateTime>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<System.TimeSpan>
+    {
+        public override System.DateTimeOffset Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.DateTimeOffset value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(System.TimeSpan value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(System.DateTime value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.DateTimeOffset value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(System.DateTime value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(System.TimeSpan value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class TimeTzHandlerFactory : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory<System.DateTimeOffset>
+    {
+        public TimeTzHandlerFactory() { }
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler<System.DateTimeOffset> Create(Npgsql.PostgresTypes.PostgresType postgresType, Npgsql.NpgsqlConnection conn) { }
+    }
+
+}
+namespace Npgsql.TypeHandlers.FullTextSearchHandlers
+{
+    public class TsQueryHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQuery>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryAnd>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryEmpty>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryFollowedBy>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryLexeme>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryNot>, Npgsql.TypeHandling.INpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsQueryOr>
+    {
+        public TsQueryHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlTsQuery> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQuery value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryOr value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryAnd value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryNot value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryLexeme value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryEmpty value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsQueryFollowedBy value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQuery query, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryOr value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryAnd value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryNot value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryLexeme value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryEmpty value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        public System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsQueryFollowedBy value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class TsVectorHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<NpgsqlTypes.NpgsqlTsVector>
+    {
+        public TsVectorHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlTsVector> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlTsVector value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlTsVector vector, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+}
+namespace Npgsql.TypeHandlers.GeometricHandlers
+{
+    public class BoxHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlBox>
+    {
+        public BoxHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override NpgsqlTypes.NpgsqlBox Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlBox value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlBox value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class CircleHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlCircle>
+    {
+        public CircleHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override NpgsqlTypes.NpgsqlCircle Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlCircle value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlCircle value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class LineHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlLine>
+    {
+        public LineHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override NpgsqlTypes.NpgsqlLine Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlLine value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlLine value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class LineSegmentHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlLSeg>
+    {
+        public LineSegmentHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override NpgsqlTypes.NpgsqlLSeg Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlLSeg value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlLSeg value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class PathHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<NpgsqlTypes.NpgsqlPath>
+    {
+        public PathHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlPath> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlPath value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlPath value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class PointHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlPoint>
+    {
+        public PointHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override NpgsqlTypes.NpgsqlPoint Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlPoint value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(NpgsqlTypes.NpgsqlPoint value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class PolygonHandler : Npgsql.TypeHandling.NpgsqlTypeHandler<NpgsqlTypes.NpgsqlPolygon>
+    {
+        public PolygonHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Threading.Tasks.ValueTask<NpgsqlTypes.NpgsqlPolygon> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(NpgsqlTypes.NpgsqlPolygon value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override System.Threading.Tasks.Task Write(NpgsqlTypes.NpgsqlPolygon value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+}
+namespace Npgsql.TypeHandlers.NetworkHandlers
+{
+    public class CidrHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<System.ValueTuple<System.Net.IPAddress, int>>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlInet>
+    {
+        public CidrHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.ValueTuple<System.Net.IPAddress, int> Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.ValueTuple<System.Net.IPAddress, int> value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlInet value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.ValueTuple<System.Net.IPAddress, int> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(NpgsqlTypes.NpgsqlInet value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class InetHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandlerWithPsv<System.Net.IPAddress, System.ValueTuple<System.Net.IPAddress, int>>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<NpgsqlTypes.NpgsqlInet>
+    {
+        public InetHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Net.IPAddress Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected override System.ValueTuple<System.Net.IPAddress, int> ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.Net.IPAddress value, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(System.ValueTuple<System.Net.IPAddress, int> value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(NpgsqlTypes.NpgsqlInet value, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.Net.IPAddress value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.ValueTuple<System.Net.IPAddress, int> value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(NpgsqlTypes.NpgsqlInet value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public class MacaddrHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<System.Net.NetworkInformation.PhysicalAddress>
+    {
+        public MacaddrHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override System.Net.NetworkInformation.PhysicalAddress Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(System.Net.NetworkInformation.PhysicalAddress value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(System.Net.NetworkInformation.PhysicalAddress value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+}
+namespace Npgsql.TypeHandlers.NumericHandlers
+{
+    public class DoubleHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<double>
+    {
+        public DoubleHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override double Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class Int16Handler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<short>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<byte>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<decimal>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<double>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<float>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<int>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<long>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<sbyte>
+    {
+        public Int16Handler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override short Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(short value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(int value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(long value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(sbyte value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(float value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(decimal value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(short value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(int value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(long value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(byte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(sbyte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(decimal value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(float value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class Int32Handler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<int>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<byte>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<decimal>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<double>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<float>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<long>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<short>
+    {
+        public Int32Handler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override int Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(int value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(short value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(long value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(float value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(decimal value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(int value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(short value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(long value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(byte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(float value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(decimal value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class Int64Handler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<long>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<byte>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<decimal>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<double>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<float>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<int>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<short>
+    {
+        public Int64Handler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override long Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(long value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(short value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(int value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(float value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(decimal value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(long value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(short value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(int value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(byte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(float value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(decimal value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class MoneyHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<decimal>
+    {
+        public MoneyHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override decimal Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(decimal value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(decimal value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class NumericHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<decimal>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<byte>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<double>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<float>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<int>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<long>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<short>
+    {
+        public NumericHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override decimal Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(decimal value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(short value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(int value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(long value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(float value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public int ValidateAndGetLength(byte value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(decimal value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(short value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(int value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(long value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(byte value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(float value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class SingleHandler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<float>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<double>
+    {
+        public SingleHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override float Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public int ValidateAndGetLength(double value, Npgsql.NpgsqlParameter? parameter) { }
+        public override int ValidateAndGetLength(float value, Npgsql.NpgsqlParameter? parameter) { }
+        public void Write(double value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(float value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
+    }
+
+    public class UInt32Handler : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<uint>
+    {
+        public UInt32Handler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override uint Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public override int ValidateAndGetLength(uint value, Npgsql.NpgsqlParameter? parameter) { }
+        public override void Write(uint value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter) { }
     }
 
 }
@@ -927,66 +1697,77 @@ namespace Npgsql.TypeHandling
 {
     public interface INpgsqlSimpleTypeHandler<T>
     {
-        T Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription fieldDescription = null);
-        int ValidateAndGetLength(T value, Npgsql.NpgsqlParameter parameter);
-        void Write(T value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter parameter);
+        T Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null);
+        int ValidateAndGetLength(T value, Npgsql.NpgsqlParameter? parameter);
+        void Write(T value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter);
     }
 
     public interface INpgsqlTypeHandler<T>
     {
-        System.Threading.Tasks.ValueTask<T> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription);
-        int ValidateAndGetLength(T value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter);
-        System.Threading.Tasks.Task Write(T value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async);
+        System.Threading.Tasks.ValueTask<T> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null);
+        int ValidateAndGetLength(T value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter);
+        System.Threading.Tasks.Task Write(T value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async);
     }
 
     public class NpgsqlSafeReadException : System.Exception
     {
-        public NpgsqlSafeReadException(System.Exception innerException) { }
+        public NpgsqlSafeReadException(System.Exception originalException) { }
+        public System.Exception OriginalException { get; }
+        public override System.Exception GetBaseException() { }
     }
 
     public abstract class NpgsqlSimpleTypeHandler<TDefault> : Npgsql.TypeHandling.NpgsqlTypeHandler<TDefault>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<TDefault>
     {
-        protected NpgsqlSimpleTypeHandler() { }
-        public abstract TDefault Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription fieldDescription = null);
-        public System.Threading.Tasks.ValueTask<TDefault> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        protected internal System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public abstract int ValidateAndGetLength(TDefault value, Npgsql.NpgsqlParameter parameter);
-        public int ValidateAndGetLength(TDefault value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public abstract void Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter parameter);
-        public System.Threading.Tasks.Task Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        protected NpgsqlSimpleTypeHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public abstract TDefault Read(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null);
+        public System.Threading.Tasks.ValueTask<TDefault> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        protected internal System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public abstract int ValidateAndGetLength(TDefault value, Npgsql.NpgsqlParameter? parameter);
+        public int ValidateAndGetLength(TDefault value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public abstract void Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter);
+        public System.Threading.Tasks.Task Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
     }
 
     public abstract class NpgsqlSimpleTypeHandlerWithPsv<TDefault, TPsv> : Npgsql.TypeHandling.NpgsqlSimpleTypeHandler<TDefault>, Npgsql.TypeHandling.INpgsqlSimpleTypeHandler<TPsv>
     {
-        protected NpgsqlSimpleTypeHandlerWithPsv() { }
-        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresType arrayBackendType) { }
-        protected abstract TPsv ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription fieldDescription = null);
-        public abstract int ValidateAndGetLength(TPsv value, Npgsql.NpgsqlParameter parameter);
-        public abstract void Write(TPsv value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter parameter);
+        protected NpgsqlSimpleTypeHandlerWithPsv(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresArrayType arrayBackendType) { }
+        protected abstract TPsv ReadPsv(Npgsql.NpgsqlReadBuffer buf, int len, Npgsql.BackendMessages.FieldDescription? fieldDescription = null);
+        public abstract int ValidateAndGetLength(TPsv value, Npgsql.NpgsqlParameter? parameter);
+        public abstract void Write(TPsv value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlParameter? parameter);
     }
 
     public abstract class NpgsqlTypeHandler<TDefault> : Npgsql.TypeHandling.NpgsqlTypeHandler, Npgsql.TypeHandling.INpgsqlTypeHandler<TDefault>
     {
-        protected NpgsqlTypeHandler() { }
-        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresType arrayBackendType) { }
-        public override Npgsql.TypeHandlers.RangeHandler CreateRangeHandler(Npgsql.PostgresTypes.PostgresType rangeBackendType) { }
-        public abstract System.Threading.Tasks.ValueTask<TDefault> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null);
-        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription fieldDescription = null) { }
-        public abstract int ValidateAndGetLength(TDefault value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter);
-        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter) { }
-        public abstract System.Threading.Tasks.Task Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async);
-        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
-        protected virtual System.Threading.Tasks.Task WriteWithLength<TAny>(TAny value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache lengthCache, Npgsql.NpgsqlParameter parameter, bool async) { }
+        protected NpgsqlTypeHandler(Npgsql.PostgresTypes.PostgresType postgresType) { }
+        public override Npgsql.TypeHandlers.ArrayHandler CreateArrayHandler(Npgsql.PostgresTypes.PostgresArrayType arrayBackendType) { }
+        public override Npgsql.TypeHandlers.RangeHandler CreateRangeHandler(Npgsql.PostgresTypes.PostgresRangeType rangeBackendType) { }
+        public abstract System.Threading.Tasks.ValueTask<TDefault> Read(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null);
+        protected internal override System.Threading.Tasks.ValueTask<TAny> Read<TAny>(Npgsql.NpgsqlReadBuffer buf, int len, bool async, Npgsql.BackendMessages.FieldDescription? fieldDescription = null) { }
+        public abstract int ValidateAndGetLength(TDefault value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter);
+        protected internal override int ValidateAndGetLength<TAny>(TAny value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        protected internal override int ValidateObjectAndGetLength(object value, ref Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter) { }
+        public abstract System.Threading.Tasks.Task Write(TDefault value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async);
+        protected internal override System.Threading.Tasks.Task WriteObjectWithLength(object value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+        protected virtual System.Threading.Tasks.Task WriteWithLength<TAny>(TAny value, Npgsql.NpgsqlWriteBuffer buf, Npgsql.NpgsqlLengthCache? lengthCache, Npgsql.NpgsqlParameter? parameter, bool async) { }
+    }
+
+    public abstract class NpgsqlTypeHandlerFactory
+    {
+        protected NpgsqlTypeHandlerFactory() { }
+        public abstract System.Type DefaultValueType { get; }
+        public abstract Npgsql.TypeHandling.NpgsqlTypeHandler CreateNonGeneric(Npgsql.PostgresTypes.PostgresType pgType, Npgsql.NpgsqlConnection conn);
     }
 
     public abstract class NpgsqlTypeHandlerFactory<TDefault> : Npgsql.TypeHandling.NpgsqlTypeHandlerFactory
     {
         protected NpgsqlTypeHandlerFactory() { }
-        protected abstract Npgsql.TypeHandling.NpgsqlTypeHandler<TDefault> Create(Npgsql.NpgsqlConnection conn);
+        public override System.Type DefaultValueType { get; }
+        public abstract Npgsql.TypeHandling.NpgsqlTypeHandler<TDefault> Create(Npgsql.PostgresTypes.PostgresType pgType, Npgsql.NpgsqlConnection conn);
+        public override Npgsql.TypeHandling.NpgsqlTypeHandler CreateNonGeneric(Npgsql.PostgresTypes.PostgresType pgType, Npgsql.NpgsqlConnection conn) { }
     }
 
 }
@@ -997,12 +1778,12 @@ namespace Npgsql.TypeMapping
         Npgsql.INpgsqlNameTranslator DefaultNameTranslator { get; }
         System.Collections.Generic.IEnumerable<Npgsql.TypeMapping.NpgsqlTypeMapping> Mappings { get; }
         Npgsql.TypeMapping.INpgsqlTypeMapper AddMapping(Npgsql.TypeMapping.NpgsqlTypeMapping mapping);
-        Npgsql.TypeMapping.INpgsqlTypeMapper MapComposite<T>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where T : new();
-        Npgsql.TypeMapping.INpgsqlTypeMapper MapEnum<TEnum>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where TEnum : System.ValueType, struct, new();
+        Npgsql.TypeMapping.INpgsqlTypeMapper MapComposite<T>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null);
+        Npgsql.TypeMapping.INpgsqlTypeMapper MapEnum<TEnum>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where TEnum : enum, System.ValueType, struct, new();
         bool RemoveMapping(string pgTypeName);
         void Reset();
-        bool UnmapComposite<T>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where T : new();
-        bool UnmapEnum<TEnum>(string pgName = null, Npgsql.INpgsqlNameTranslator nameTranslator = null) where TEnum : System.ValueType, struct, new();
+        bool UnmapComposite<T>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null);
+        bool UnmapEnum<TEnum>(string? pgName = null, Npgsql.INpgsqlNameTranslator? nameTranslator = null) where TEnum : enum, System.ValueType, struct, new();
     }
 
     public sealed class NpgsqlTypeMapping
@@ -1019,12 +1800,12 @@ namespace Npgsql.TypeMapping
     public class NpgsqlTypeMappingBuilder
     {
         public NpgsqlTypeMappingBuilder() { }
-        public System.Type[] ClrTypes { get; set; }
-        public System.Data.DbType[] DbTypes { get; set; }
+        public System.Type[]? ClrTypes { get; set; }
+        public System.Data.DbType?[]? DbTypes { get; set; }
         public System.DbType? InferredDbType { get; set; }
         public System.NpgsqlDbType? NpgsqlDbType { get; set; }
-        public string PgTypeName { get; set; }
-        public Npgsql.TypeHandling.NpgsqlTypeHandlerFactory TypeHandlerFactory { get; set; }
+        public string? PgTypeName { get; set; }
+        public Npgsql.TypeHandling.NpgsqlTypeHandlerFactory? TypeHandlerFactory { get; set; }
         public Npgsql.TypeMapping.NpgsqlTypeMapping Build() { }
     }
 
@@ -1045,7 +1826,7 @@ namespace NpgsqlTypes
         public NpgsqlTypes.NpgsqlPoint UpperRight { get; set; }
         public double Width { get; }
         public bool Equals(NpgsqlTypes.NpgsqlBox other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlBox Parse(string s) { }
         public override string ToString() { }
@@ -1062,7 +1843,7 @@ namespace NpgsqlTypes
         public double X { get; set; }
         public double Y { get; set; }
         public bool Equals(NpgsqlTypes.NpgsqlCircle other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlCircle Parse(string s) { }
         public override string ToString() { }
@@ -1101,11 +1882,11 @@ namespace NpgsqlTypes
         public NpgsqlTypes.NpgsqlDate AddMonths(int months) { }
         public NpgsqlTypes.NpgsqlDate AddYears(int years) { }
         public int Compare(NpgsqlTypes.NpgsqlDate x, NpgsqlTypes.NpgsqlDate y) { }
-        public int Compare(object x, object y) { }
+        public int Compare(object? x, object? y) { }
         public int CompareTo(NpgsqlTypes.NpgsqlDate other) { }
-        public int CompareTo(object o) { }
+        public int CompareTo(object? o) { }
         public bool Equals(NpgsqlTypes.NpgsqlDate other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlDate Parse(string str) { }
         public NpgsqlTypes.NpgsqlDate Subtract(NpgsqlTypes.NpgsqlTimeSpan interval) { }
@@ -1169,11 +1950,11 @@ namespace NpgsqlTypes
         public NpgsqlTypes.NpgsqlDateTime AddTicks(long value) { }
         public NpgsqlTypes.NpgsqlDateTime AddYears(int value) { }
         public int Compare(NpgsqlTypes.NpgsqlDateTime x, NpgsqlTypes.NpgsqlDateTime y) { }
-        public int Compare(object x, object y) { }
+        public int Compare(object? x, object? y) { }
         public int CompareTo(NpgsqlTypes.NpgsqlDateTime other) { }
-        public int CompareTo(object o) { }
+        public int CompareTo(object? o) { }
         public bool Equals(NpgsqlTypes.NpgsqlDateTime other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public NpgsqlTypes.NpgsqlDateTime Normalize() { }
         public static NpgsqlTypes.NpgsqlDateTime Parse(string str) { }
@@ -1269,10 +2050,10 @@ namespace NpgsqlTypes
         public int Netmask { get; set; }
         public void Deconstruct(out System.Net.IPAddress address, out int netmask) { }
         public bool Equals(NpgsqlTypes.NpgsqlInet other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static System.Net.IPAddress ToIPAddress(NpgsqlTypes.NpgsqlInet inet) { }
-        public static NpgsqlTypes.NpgsqlInet ToNpgsqlInet(System.Net.IPAddress ip) { }
+        public static NpgsqlTypes.NpgsqlInet ToNpgsqlInet(System.Net.IPAddress? ip) { }
         public override string ToString() { }
         public static explicit operator IPAddress(NpgsqlTypes.NpgsqlInet inet) { }
         public static implicit operator NpgsqlInet(System.Net.IPAddress ip) { }
@@ -1287,7 +2068,7 @@ namespace NpgsqlTypes
         public double B { get; set; }
         public double C { get; set; }
         public bool Equals(NpgsqlTypes.NpgsqlLine other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlLine Parse(string s) { }
         public override string ToString() { }
@@ -1302,7 +2083,7 @@ namespace NpgsqlTypes
         public NpgsqlTypes.NpgsqlPoint End { get; set; }
         public NpgsqlTypes.NpgsqlPoint Start { get; set; }
         public bool Equals(NpgsqlTypes.NpgsqlLSeg other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlLSeg Parse(string s) { }
         public override string ToString() { }
@@ -1328,7 +2109,7 @@ namespace NpgsqlTypes
         public bool Contains(NpgsqlTypes.NpgsqlPoint item) { }
         public void CopyTo(NpgsqlTypes.NpgsqlPoint[] array, int arrayIndex) { }
         public bool Equals(NpgsqlTypes.NpgsqlPath other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public System.Collections.Generic.IEnumerator<NpgsqlTypes.NpgsqlPoint> GetEnumerator() { }
         public override int GetHashCode() { }
         public int IndexOf(NpgsqlTypes.NpgsqlPoint item) { }
@@ -1347,7 +2128,7 @@ namespace NpgsqlTypes
         public double X { get; set; }
         public double Y { get; set; }
         public bool Equals(NpgsqlTypes.NpgsqlPoint other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlPoint Parse(string s) { }
         public override string ToString() { }
@@ -1369,7 +2150,7 @@ namespace NpgsqlTypes
         public bool Contains(NpgsqlTypes.NpgsqlPoint item) { }
         public void CopyTo(NpgsqlTypes.NpgsqlPoint[] array, int arrayIndex) { }
         public bool Equals(NpgsqlTypes.NpgsqlPolygon other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public System.Collections.Generic.IEnumerator<NpgsqlTypes.NpgsqlPoint> GetEnumerator() { }
         public override int GetHashCode() { }
         public int IndexOf(NpgsqlTypes.NpgsqlPoint item) { }
@@ -1395,7 +2176,7 @@ namespace NpgsqlTypes
         public T UpperBound { get; }
         public bool UpperBoundInfinite { get; }
         public bool UpperBoundIsInclusive { get; }
-        public override bool Equals(object o) { }
+        public override bool Equals(object? o) { }
         public bool Equals(NpgsqlTypes.NpgsqlRange<T> other) { }
         public override int GetHashCode() { }
         public static NpgsqlTypes.NpgsqlRange<T> Parse(string value) { }
@@ -1420,7 +2201,7 @@ namespace NpgsqlTypes
         public uint BlockNumber { get; }
         public ushort OffsetNumber { get; }
         public bool Equals(NpgsqlTypes.NpgsqlTid other) { }
-        public override bool Equals(object o) { }
+        public override bool Equals(object? o) { }
         public override int GetHashCode() { }
         public override string ToString() { }
         public static bool operator !=(NpgsqlTypes.NpgsqlTid left, NpgsqlTypes.NpgsqlTid right) { }
@@ -1470,10 +2251,10 @@ namespace NpgsqlTypes
         public NpgsqlTypes.NpgsqlTimeSpan Canonicalize() { }
         public static int Compare(NpgsqlTypes.NpgsqlTimeSpan x, NpgsqlTypes.NpgsqlTimeSpan y) { }
         public int CompareTo(NpgsqlTypes.NpgsqlTimeSpan other) { }
-        public int CompareTo(object other) { }
+        public int CompareTo(object? other) { }
         public NpgsqlTypes.NpgsqlTimeSpan Duration() { }
         public bool Equals(NpgsqlTypes.NpgsqlTimeSpan other) { }
-        public override bool Equals(object obj) { }
+        public override bool Equals(object? obj) { }
         public static NpgsqlTypes.NpgsqlTimeSpan FromDays(double days) { }
         public static NpgsqlTypes.NpgsqlTimeSpan FromHours(double hours) { }
         public static NpgsqlTypes.NpgsqlTimeSpan FromMicroseconds(double micro) { }
@@ -1548,8 +2329,8 @@ namespace NpgsqlTypes
 
     public sealed class NpgsqlTsQueryNot : NpgsqlTypes.NpgsqlTsQuery
     {
-        public NpgsqlTsQueryNot(NpgsqlTypes.NpgsqlTsQuery child) { }
-        public NpgsqlTypes.NpgsqlTsQuery Child { get; set; }
+        public NpgsqlTsQueryNot(NpgsqlTypes.NpgsqlTsQuery? child) { }
+        public NpgsqlTypes.NpgsqlTsQuery? Child { get; set; }
     }
 
     public sealed class NpgsqlTsQueryOr : NpgsqlTypes.NpgsqlTsQueryBinOp
@@ -1559,7 +2340,6 @@ namespace NpgsqlTypes
 
     public sealed class NpgsqlTsVector : System.Collections.Generic.IEnumerable<NpgsqlTypes.NpgsqlTsVector.Lexeme>
     {
-        public NpgsqlTsVector(System.Collections.Generic.List<NpgsqlTypes.NpgsqlTsVector.Lexeme> lexemes) { }
         public int Count { get; }
         public NpgsqlTypes.NpgsqlTsVector.Lexeme this[int index] { get; }
         public System.Collections.Generic.IEnumerator<NpgsqlTypes.NpgsqlTsVector.Lexeme> GetEnumerator() { }
@@ -1568,12 +2348,12 @@ namespace NpgsqlTypes
         public struct Lexeme : System.IEquatable<NpgsqlTypes.NpgsqlTsVector.Lexeme>
         {
             public Lexeme(string text) { }
-            public Lexeme(string text, System.Collections.Generic.List<NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos> wordEntryPositions) { }
+            public Lexeme(string text, System.Collections.Generic.List<NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos>? wordEntryPositions) { }
             public int Count { get; }
             public string Text { get; set; }
             public NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos this[int index] { get; }
             public bool Equals(NpgsqlTypes.NpgsqlTsVector.Lexeme o) { }
-            public override bool Equals(object o) { }
+            public override bool Equals(object? o) { }
             public override int GetHashCode() { }
             public override string ToString() { }
             public static bool operator !=(NpgsqlTypes.NpgsqlTsVector.Lexeme left, NpgsqlTypes.NpgsqlTsVector.Lexeme right) { }
@@ -1592,7 +2372,7 @@ namespace NpgsqlTypes
                 public int Pos { get; }
                 public NpgsqlTypes.NpgsqlTsVector.Lexeme.Weight Weight { get; }
                 public bool Equals(NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos o) { }
-                public override bool Equals(object o) { }
+                public override bool Equals(object? o) { }
                 public override int GetHashCode() { }
                 public override string ToString() { }
                 public static bool operator !=(NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos left, NpgsqlTypes.NpgsqlTsVector.Lexeme.WordEntryPos right) { }
